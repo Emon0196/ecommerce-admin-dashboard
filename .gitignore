@@ -1,0 +1,16 @@
+cd ..
+@"
+node_modules/
+dist/
+.env
+*.log
+uploads/*
+!uploads/.gitkeep
+"@ | Out-File -Encoding utf8 .gitignore
+/generated/prisma
+
+.claude/
+.windsurf/
+.agents/
+.vscode/
+generated/
