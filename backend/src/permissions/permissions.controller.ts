@@ -1,36 +1,32 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
-import { CreatePermissionGroupDto } from './dto/create-permission-group.dto';
-import { CreatePermissionDto } from './dto/create-permission.dto';
-import { RequirePermissions } from './decorators/permissions.decorator';
-import { PermissionsGuard } from './guards/permissions.guard';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 
 @Controller('permissions')
-@UseGuards(PermissionsGuard)
 export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}
 
-  @Post('groups')
-  @RequirePermissions('permission:manage')
-  async createGroup(@Body() dto: CreatePermissionGroupDto) {
+  @Post()
+  @Permissions('permission:create')
+  createGroup(@Body() dto: any) {
     return this.permissionsService.createGroup(dto);
   }
 
-  @Get('groups')
-  @RequirePermissions('permission:read')
-  async findAllGroups() {
-    return this.permissionsService.findAllGroups();
-  }
-
-  @Post()
-  @RequirePermissions('permission:manage')
-  async createPermission(@Body() dto: CreatePermissionDto) {
-    return this.permissionsService.createPermission(dto);
-  }
-
   @Get()
-  @RequirePermissions('permission:read')
-  async findAllPermissions() {
-    return this.permissionsService.findAllPermissions();
+  @Permissions('permission:read')
+  findAll(@Query() query: any) {
+    return this.permissionsService.findAll(query);
+  }
+
+  @Patch(':id')
+  @Permissions('permission:update')
+  updateGroup(@Param('id') id: string, @Body() dto: any) {
+    return this.permissionsService.updateGroup(id, dto);
+  }
+
+  @Delete(':id')
+  @Permissions('permission:delete')
+  remove(@Param('id') id: string) {
+    return this.permissionsService.remove(id);
   }
 }

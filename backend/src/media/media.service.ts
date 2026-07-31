@@ -1,111 +1,49 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
-import * as fs from 'fs';
-import * as path from 'path';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { MediaType } from '@prisma/client';
-import { UpdateMediaDto } from './dto/update-media.dto';
-import { QueryMediaDto } from './dto/query-media.dto';
 
 @Injectable()
 export class MediaService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-  async create(file: Express.Multer.File, userId?: string) {
+  async saveFile(file: Express.Multer.File) {
     if (!file) {
-      throw new BadRequestException('File is required');
+      throw new NotFoundException('No file provided.');
     }
-
-    let mediaType: MediaType = MediaType.DOCUMENT;
-    if (file.mimetype.startsWith('image/')) {
-      mediaType = MediaType.IMAGE;
-    } else if (file.mimetype.startsWith('video/')) {
-      mediaType = MediaType.VIDEO;
-    }
-
-    const publicUrl = `/uploads/${file.filename}`;
-
     return this.prisma.media.create({
       data: {
-        fileName: file.originalname,
-        storedPath: file.path,
-        publicUrl,
+        fileName: file.filename || file.originalname,
+        storedPath: `/uploads/${file.filename || file.originalname}`,
+        publicUrl: `/uploads/${file.filename || file.originalname}`,
         mimeType: file.mimetype,
-        type: mediaType,
+        type: 'IMAGE',
         size: file.size,
-        uploadedById: userId || null,
       },
     });
   }
 
-  async findAll(query: QueryMediaDto) {
-    const page = Number(query.page) || 1;
-    const limit = Number(query.limit) || 20;
-    const skip = (page - 1) * limit;
-
-    const where: any = {};
-
-    if (query.search) {
-      where.OR = [
-        { fileName: { contains: query.search, mode: 'insensitive' } },
-        { title: { contains: query.search, mode: 'insensitive' } },
-        { altText: { contains: query.search, mode: 'insensitive' } },
-      ];
+  async saveFiles(files: Express.Multer.File[]) {
+    if (!files || files.length === 0) {
+      return [];
     }
-
-    if (query.type) {
-      where.type = query.type;
+    const savedMedia: any[] = [];
+    for (const file of files) {
+      const media = await this.saveFile(file);
+      savedMedia.push(media);
     }
-
-    const [total, mediaItems] = await Promise.all([
-      this.prisma.media.count({ where }),
-      this.prisma.media.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          uploadedBy: {
-            select: { id: true, name: true, email: true },
-          },
-        },
-      }),
-    ]);
-
-    return {
-      data: mediaItems,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return savedMedia;
   }
 
-  async findOne(id: string) {
-    const media = await this.prisma.media.findUnique({
-      where: { id },
-      include: {
-        uploadedBy: {
-          select: { id: true, name: true, email: true },
-        },
-      },
+  async findAll(query?: any) {
+    return this.prisma.media.findMany({
+      orderBy: { createdAt: 'desc' },
     });
+  }
 
+  async updateMetadata(id: string, dto: any) {
+    const media = await this.prisma.media.findUnique({ where: { id } });
     if (!media) {
-      throw new NotFoundException(`Media file with ID ${id} not found`);
+      throw new NotFoundException(`Media with ID ${id} not found.`);
     }
-
-    return media;
-  }
-
-  async update(id: string, dto: UpdateMediaDto) {
-    await this.findOne(id);
-
     return this.prisma.media.update({
       where: { id },
       data: dto,
@@ -113,17 +51,12 @@ export class MediaService {
   }
 
   async remove(id: string) {
-    const media = await this.findOne(id);
-
-    // Delete file from disk if present
-    if (fs.existsSync(media.storedPath)) {
-      try {
-        fs.unlinkSync(media.storedPath);
-      } catch (err) {
-        console.error(`Failed to delete file on disk: ${media.storedPath}`, err);
-      }
+    const media = await this.prisma.media.findUnique({ where: { id } });
+    if (!media) {
+      throw new NotFoundException(`Media with ID ${id} not found.`);
     }
-
-    return this.prisma.media.delete({ where: { id } });
+    return this.prisma.media.delete({
+      where: { id },
+    });
   }
 }

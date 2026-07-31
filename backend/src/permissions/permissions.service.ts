@@ -1,39 +1,43 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreatePermissionGroupDto } from './dto/create-permission-group.dto';
-import { CreatePermissionDto } from './dto/create-permission.dto';
 
 @Injectable()
 export class PermissionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-  // Permission Group Methods
-  async createGroup(dto: CreatePermissionGroupDto) {
-    return this.prisma.permissionGroup.create({ data: dto });
+  async createGroup(dto: any) {
+    return this.prisma.permissionGroup.create({
+      data: {
+        name: dto.name,
+        description: dto.description,
+      },
+    });
   }
 
-  async findAllGroups() {
+  async findAll(query?: any) {
     return this.prisma.permissionGroup.findMany({
       include: { permissions: true },
-      orderBy: { name: 'asc' },
     });
   }
 
-  // Permission Methods
-  async createPermission(dto: CreatePermissionDto) {
-    const groupExists = await this.prisma.permissionGroup.findUnique({
-      where: { id: dto.groupId },
-    });
-    if (!groupExists) {
-      throw new NotFoundException('Permission Group not found');
+  async updateGroup(id: string, dto: any) {
+    const group = await this.prisma.permissionGroup.findUnique({ where: { id } });
+    if (!group) {
+      throw new NotFoundException(`Permission group with ID ${id} not found.`);
     }
-    return this.prisma.permission.create({ data: dto });
+    return this.prisma.permissionGroup.update({
+      where: { id },
+      data: dto,
+    });
   }
 
-  async findAllPermissions() {
-    return this.prisma.permission.findMany({
-      include: { group: true },
-      orderBy: { name: 'asc' },
+  async remove(id: string) {
+    const group = await this.prisma.permissionGroup.findUnique({ where: { id } });
+    if (!group) {
+      throw new NotFoundException(`Permission group with ID ${id} not found.`);
+    }
+    return this.prisma.permissionGroup.delete({
+      where: { id },
     });
   }
 }

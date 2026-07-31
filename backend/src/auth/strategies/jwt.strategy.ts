@@ -4,6 +4,11 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 
+export interface JwtPayload {
+  sub: string;
+  email: string;
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
@@ -17,7 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: { sub: string; email: string }) {
+  async validate(payload: JwtPayload) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
       include: {
@@ -37,6 +42,17 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('User account is inactive or no longer exists.');
     }
 
-    return user;
+    // 1. Flatten nested permissions array into string[] for fast evaluation in Guards
+    const permissions: string[] = user.role?.permissions
+      ? user.role.permissions.map((rp) => rp.permission.name)
+      : [];
+
+    // 2. Omit passwordHash from request.user payload
+    const { passwordHash, ...userWithoutPassword } = user;
+
+    return {
+      ...userWithoutPassword,
+      permissions,
+    };
   }
 }

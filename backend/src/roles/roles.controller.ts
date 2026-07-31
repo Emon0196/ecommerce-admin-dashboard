@@ -1,51 +1,45 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { RolesService } from './roles.service';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
-import { RequirePermissions } from '../permissions/decorators/permissions.decorator';
-import { PermissionsGuard } from '../permissions/guards/permissions.guard';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 
 @Controller('roles')
-@UseGuards(PermissionsGuard)
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
-  @RequirePermissions('role:create')
-  async create(@Body() createRoleDto: CreateRoleDto) {
-    return this.rolesService.create(createRoleDto);
+  @Permissions('role:create')
+  create(@Body() dto: any) {
+    return this.rolesService.create(dto);
   }
 
   @Get()
-  @RequirePermissions('role:read')
-  async findAll() {
-    return this.rolesService.findAll();
+  @Permissions('role:read')
+  findAll(@Query() query: any) {
+    return this.rolesService.findAll(query);
   }
 
   @Get(':id')
-  @RequirePermissions('role:read')
-  async findOne(@Param('id') id: string) {
+  @Permissions('role:read')
+  findOne(@Param('id') id: string) {
     return this.rolesService.findOne(id);
   }
 
   @Patch(':id')
-  @RequirePermissions('role:update')
-  async update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
-    return this.rolesService.update(id, updateRoleDto);
+  @Permissions('role:update')
+  update(@Param('id') id: string, @Body() dto: any) {
+    return this.rolesService.update(id, dto);
+  }
+
+  // Explicitly guarded nested route for role assignment
+  @Post(':id/permissions')
+  @Permissions('role:update')
+  assignPermissions(@Param('id') id: string, @Body() dto: any) {
+    return this.rolesService.assignPermissions(id, dto);
   }
 
   @Delete(':id')
-  @RequirePermissions('role:delete')
-  async remove(@Param('id') id: string) {
+  @Permissions('role:delete')
+  remove(@Param('id') id: string) {
     return this.rolesService.remove(id);
   }
 }

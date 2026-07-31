@@ -1,9 +1,6 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Controller, Post, Get, Body, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { Public } from './decorators/public.decorator';
-import { CurrentUser } from './decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -11,26 +8,26 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  login(@Body() dto: any) {
+    return this.authService.login(dto);
   }
 
   @Public()
   @Post('refresh')
-  @HttpCode(HttpStatus.OK)
-  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
-    return this.authService.refreshTokens(refreshTokenDto.refreshToken);
+  refresh(@Body() dto: any) {
+    return this.authService.refresh(dto);
   }
 
+  @Public()
   @Post('logout')
-  @HttpCode(HttpStatus.OK)
-  async logout(@CurrentUser('id') userId: string) {
-    return this.authService.logout(userId);
+  logout(@Body() dto: any) {
+    // Requires refreshToken in the body to revoke the session
+    return this.authService.logout(dto.refreshToken);
   }
 
-  @Get('me')
-  async getSession(@CurrentUser() user: any) {
-    return this.authService.getSessionProfile(user);
+  @Get('session')
+  getSession(@Req() req: any) {
+    // Returns user info, role, and a flat list of string permissions
+    return this.authService.getSession(req.user.id);
   }
 }

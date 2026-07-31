@@ -8,6 +8,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { PermissionsGuard } from './guards/permissions.guard';
 
 @Module({
   imports: [PassportModule, ConfigModule, JwtModule.register({})],
@@ -17,7 +18,11 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     JwtStrategy,
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard, // Automatically registers Auth Guard Globally!
+      useClass: JwtAuthGuard, // Protects all routes globally by default
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard, // Checks @Permissions() metadata globally
     },
   ],
   exports: [AuthService],
