@@ -20,10 +20,10 @@ PORT=5000
 DATABASE_URL="postgresql://<user>:<password>@<host>:5432/postgres"
 
 ## Authentication Secrets
-JWT_ACCESS_SECRET="your_access_secret_here"
-JWT_REFRESH_SECRET="your_refresh_secret_here"
-JWT_ACCESS_EXPIRATION="15m"
-JWT_REFRESH_EXPIRATION="7d"
+1. JWT_ACCESS_SECRET="your_access_secret_here"
+2. JWT_REFRESH_SECRET="your_refresh_secret_here"
+3. JWT_ACCESS_EXPIRATION="15m"
+4. JWT_REFRESH_EXPIRATION="7d"
 
 ### Supabase Storage (Media Module)
 SUPABASE_URL="[https://your-project.supabase.co](https://your-project.supabase.co)"
