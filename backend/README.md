@@ -1,98 +1,111 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Ecommerce Admin Dashboard API - Trends Bird Limited
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is the backend implementation for the Trends Bird Limited Backend Developer Intern assignment. It provides a RESTful API to manage an e-commerce platform's administrative dashboard, featuring a robust, granular Role-Based Access Control (RBAC) system.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+**Node.js Version:** v20.x.x LTS
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🛠️ Setup & Run Instructions
 
-## Project setup
-
+### 1. Install Dependencies
 ```bash
-$ npm install
+npm install
 ```
+# 2. Environment Variables
+## Server
+PORT=5000
 
-## Compile and run the project
+## Database
+DATABASE_URL="postgresql://<user>:<password>@<host>:5432/postgres"
 
-```bash
-# development
-$ npm run start
+## Authentication Secrets
+JWT_ACCESS_SECRET="your_access_secret_here"
+JWT_REFRESH_SECRET="your_refresh_secret_here"
+JWT_ACCESS_EXPIRATION="15m"
+JWT_REFRESH_EXPIRATION="7d"
 
-# watch mode
-$ npm run start:dev
+### Supabase Storage (Media Module)
+SUPABASE_URL="[https://your-project.supabase.co](https://your-project.supabase.co)"
+SUPABASE_KEY="your_anon_key"
 
-# production mode
-$ npm run start:prod
-```
+# 3. Database Setup (Migrate & Seed)
+## Apply database migrations to create all tables
+npx prisma migrate deploy
 
-## Run tests
+## Run the seed script to populate permissions, roles, and default users
+npx prisma db seed
+## Development mode
+npm run start:dev
 
-```bash
-# unit tests
-$ npm run test
+## Production mode
+npm run build
 
-# e2e tests
-$ npm run test:e2e
+npm run start:prod
 
-# test coverage
-$ npm run test:cov
-```
+# 🔐 Seeded Account Credentials
+The database seed script generates two users for testing access control.
 
-## Deployment
+1. Super Administrator (Holds a role with all permissions)
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+   Email: superadmin@example.com
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+   Password: SuperAdmin123!
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+2. Catalog Manager (Deliberately limited user: catalog access only, no permission/role/user management)
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+   Email: catalog@example.com
 
-## Resources
+   Password: CatalogUser123!
 
-Check out a few resources that may come in handy when working with NestJS:
+(Note: If you change these in your seed.ts, please update them here).
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# 🏗️ Technical Architecture & Design Decisions
+Token Strategy
+Strategy: Authorization: Bearer Header.
 
-## Support
+Implementation: The API issues a short-lived Access Token (15 minutes) and a long-lived Refresh Token (7 days) upon successful login. The frontend must pass the Access Token in the Authorization: Bearer <token> header for all authenticated routes.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Logout & Refresh: The Refresh Token is stored securely in the database so it can be successfully revoked server-side upon logout. An inactive user cannot refresh their session.
 
-## Stay in touch
+Notable Design Decisions
+Access Control Guard: Permissions are enforced via a global NestJS guard. It intercepts every request, checks the required @RequirePermissions('module:action') metadata against the authenticated user's role, and returns 403 Forbidden if unauthorized.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Media Module: Multer handles multipart file uploads in memory, and the files are uploaded directly to Supabase Storage. The URL is then saved to PostgreSQL, ensuring the local filesystem is bypassed (making the app deployment ready).
 
-## License
+Database Transactions: Multi-table writes (such as creating a Variable Product with its nested Attributes and Variants) are wrapped in Prisma Transactions to ensure atomicity.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# 📊 Module Status List
+1. Authentication: Complete
+
+2. Permission: Complete
+
+3. Role: Complete
+
+4. User: Complete
+
+5. Media: Complete
+
+6. Category: Complete
+
+7. Brand: Complete
+
+8. Attribute: Complete
+
+9. Product: Complete
+
+⚠️ Known Issues
+No major issues identified. All core assignment requirements have been met.
+
+# 🧪 API Testing (Postman)
+A complete Postman collection is included in the project root to test all routes:
+
+File: trends-bird-admin-dashboard.postman_collection
+
+Instructions:
+
+Import the collection into Postman.
+
+Run the POST /auth/login route first using one of the seeded credentials.
+
+Copy the returned accessToken and set it as the Bearer Token for subsequent requests.
