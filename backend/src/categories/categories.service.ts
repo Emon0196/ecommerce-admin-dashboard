@@ -10,6 +10,8 @@ export class CategoriesService {
       data: {
         name: dto.name,
         slug: dto.slug,
+        description: dto.description,
+        imageId: dto.imageId || null,
         parentId: dto.parentId || null,
         isActive: dto.isActive ?? true,
       },
